@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MINDR4CER RADIO</title>
+<title>DEEP EYES BLUE SKIES</title>
 <style>
   :root{
     --bg:#0d0c0b;
@@ -39,9 +39,10 @@
   }
   header h1{
     font-family:var(--mono);
-    font-size:19px;letter-spacing:.32em;font-weight:600;
+    font-size:18px;letter-spacing:.2em;font-weight:600;
     color:var(--ink);
   }
+  @media(max-width:520px){header h1{font-size:15px;letter-spacing:.14em}}
   header .dot{
     width:8px;height:8px;border-radius:50%;background:var(--accent);
     box-shadow:0 0 0 0 var(--glow);
@@ -121,7 +122,7 @@
     display:flex;align-items:center;justify-content:center;z-index:50;
   }
   .tuner .card{text-align:center;max-width:340px;padding:10px}
-  .tuner h2{font-family:var(--mono);letter-spacing:.3em;font-size:16px;margin-bottom:10px}
+  .tuner h2{font-family:var(--mono);letter-spacing:.22em;font-size:17px;line-height:1.7;margin-bottom:14px;color:var(--accent-2)}
   .tuner p{color:var(--ink-dim);font-size:13px;line-height:1.5;margin-bottom:22px}
   .tuner button{
     background:var(--accent);border:0;color:#1a1207;font-weight:700;letter-spacing:.16em;
@@ -135,8 +136,8 @@
 <body>
 <div class="shell">
   <header>
-    <h1><span class="dot"></span>&nbsp;MINDR4CER&nbsp;RADIO</h1>
-    <p>six stations tuned to your Discogs collection · streams from YouTube</p>
+    <h1><span class="dot"></span>&nbsp;DEEP&nbsp;EYES&nbsp;BLUE&nbsp;SKIES</h1>
+    <p>six stations for deep listening · streams from YouTube</p>
   </header>
 
   <div class="grid">
@@ -183,8 +184,8 @@
 
 <div class="tuner" id="tuner">
   <div class="card">
-    <h2>MINDR4CER RADIO</h2>
-    <p>A private radio built from your crate — Baltic cosmic synth, the Sprinkles/Detroit deep-house church, dub-techno chambers, kankyō ambient, spiritual jazz and deep dubstep.</p>
+    <h2>DEEP EYES<br>BLUE SKIES</h2>
+    <p>Baltic cosmic synth, the Sprinkles/Detroit deep-house church, dub-techno chambers, kankyō ambient, spiritual jazz and deep dubstep.</p>
     <button id="tuneIn">TUNE IN</button>
   </div>
 </div>

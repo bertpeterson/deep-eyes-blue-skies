@@ -1,4 +1,4 @@
-# MINDR4CER RADIO
+# DEEP EYES BLUE SKIES
 
 A six-channel web radio programmed from a personal vinyl collection.
 
