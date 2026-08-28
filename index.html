@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MINDR4CER RADIO</title>
+<style>
+  :root{
+    --bg:#0d0c0b;
+    --panel:#141210;
+    --panel-2:#1b1815;
+    --line:#2a251f;
+    --ink:#efe7db;
+    --ink-dim:#9a8f7e;
+    --ink-faint:#6b6153;
+    --accent:#d97a3c;
+    --accent-2:#e8c07a;
+    --glow:rgba(217,122,60,.25);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(1200px 800px at 78% -10%, #1c1712 0%, var(--bg) 55%);
+    color:var(--ink);
+    font-family:var(--font);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+    padding:28px 20px 60px;
+  }
+  .shell{width:100%;max-width:1080px}
+
+  header{
+    display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px;margin-bottom:22px;
+  }
+  header h1{
+    font-family:var(--mono);
+    font-size:19px;letter-spacing:.32em;font-weight:600;
+    color:var(--ink);
+  }
+  header .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 0 var(--glow);
+    animation:pulse 2.4s infinite;display:inline-block;
+  }
+  @keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 10px rgba(217,122,60,0)}100%{box-shadow:0 0 0 0 rgba(217,122,60,0)}}
+  header p{color:var(--ink-faint);font-size:12.5px;letter-spacing:.04em}
+
+  .grid{display:grid;grid-template-columns:280px 1fr;gap:22px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+
+  /* ---- station dial ---- */
+  .dial{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:10px;height:max-content;
+  }
+  .dial h2{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.28em;
+    color:var(--ink-faint);padding:10px 10px 12px;text-transform:uppercase;
+  }
+  .st{
+    width:100%;text-align:left;background:transparent;border:0;cursor:pointer;
+    color:var(--ink-dim);padding:11px 12px;border-radius:10px;
+    display:flex;flex-direction:column;gap:3px;transition:background .15s,color .15s;
+  }
+  .st:hover{background:var(--panel-2);color:var(--ink)}
+  .st .num{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-faint)}
+  .st .nm{font-size:14px;font-weight:600;letter-spacing:.01em}
+  .st .ds{font-size:11.5px;color:var(--ink-faint);line-height:1.35}
+  .st.active{background:linear-gradient(180deg,var(--panel-2),#1a1613);color:var(--ink)}
+  .st.active .nm{color:var(--accent-2)}
+  .st.active .num{color:var(--accent)}
+
+  /* ---- player ---- */
+  .player{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .stage{position:relative;background:#000;aspect-ratio:16/9;width:100%}
+  .stage.hidden-video{aspect-ratio:auto;height:0;overflow:hidden}
+  #yt{width:100%;height:100%;border:0;display:block}
+
+  .np{padding:18px 20px 6px}
+  .np .kicker{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--accent);text-transform:uppercase}
+  .np .title{font-size:20px;font-weight:650;margin-top:7px;letter-spacing:.01em;line-height:1.2}
+  .np .artist{font-size:14px;color:var(--ink-dim);margin-top:4px}
+  .np .meta{font-size:11.5px;color:var(--ink-faint);margin-top:9px;font-family:var(--mono);letter-spacing:.05em;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .np .meta a{color:var(--ink-faint);text-decoration:none;border-bottom:1px dotted var(--ink-faint)}
+  .np .meta a:hover{color:var(--accent-2);border-color:var(--accent-2)}
+
+  .controls{display:flex;align-items:center;gap:8px;padding:14px 20px 18px;flex-wrap:wrap}
+  .btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+    width:42px;height:42px;border-radius:10px;cursor:pointer;font-size:15px;
+    display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s;
+  }
+  .btn:hover{border-color:var(--accent);background:#211c17}
+  .btn.play{width:52px;height:52px;background:var(--accent);border-color:var(--accent);color:#1a1207;font-size:18px}
+  .btn.play:hover{background:var(--accent-2);border-color:var(--accent-2)}
+  .btn.toggle.on{border-color:var(--accent);color:var(--accent-2)}
+  .spacer{flex:1}
+  .vol{display:flex;align-items:center;gap:8px;color:var(--ink-faint)}
+  .vol input[type=range]{width:96px;accent-color:var(--accent)}
+
+  .queue{border-top:1px solid var(--line);padding:8px}
+  .queue h3{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--ink-faint);padding:12px 12px 10px;text-transform:uppercase}
+  .qrow{
+    display:flex;gap:12px;align-items:baseline;padding:9px 12px;border-radius:8px;cursor:pointer;
+    color:var(--ink-dim);transition:background .12s;
+  }
+  .qrow:hover{background:var(--panel-2);color:var(--ink)}
+  .qrow .qn{font-family:var(--mono);font-size:10px;color:var(--ink-faint);min-width:20px}
+  .qrow .qt{font-size:13px;font-weight:550}
+  .qrow .qa{font-size:12px;color:var(--ink-faint)}
+  .qrow.playing{background:#1a1613}
+  .qrow.playing .qt{color:var(--accent-2)}
+
+  .tuner{
+    position:fixed;inset:0;background:rgba(8,7,6,.92);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;z-index:50;
+  }
+  .tuner .card{text-align:center;max-width:340px;padding:10px}
+  .tuner h2{font-family:var(--mono);letter-spacing:.3em;font-size:16px;margin-bottom:10px}
+  .tuner p{color:var(--ink-dim);font-size:13px;line-height:1.5;margin-bottom:22px}
+  .tuner button{
+    background:var(--accent);border:0;color:#1a1207;font-weight:700;letter-spacing:.16em;
+    font-family:var(--mono);font-size:13px;padding:14px 30px;border-radius:10px;cursor:pointer;
+  }
+  .tuner button:hover{background:var(--accent-2)}
+  footer{margin-top:26px;color:var(--ink-faint);font-size:11px;line-height:1.6;text-align:center}
+  footer code{font-family:var(--mono);color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1><span class="dot"></span>&nbsp;MINDR4CER&nbsp;RADIO</h1>
+    <p>six stations tuned to your Discogs collection · streams from YouTube</p>
+  </header>
+
+  <div class="grid">
+    <nav class="dial" id="dial">
+      <h2>Stations</h2>
+    </nav>
+
+    <section class="player">
+      <div class="stage" id="stage"><div id="yt"></div></div>
+
+      <div class="np">
+        <div class="kicker" id="npStation">—</div>
+        <div class="title" id="npTitle">Press tune in</div>
+        <div class="artist" id="npArtist"></div>
+        <div class="meta">
+          <span id="npTag"></span>
+          <a id="npYt" href="#" target="_blank" rel="noopener">search on YouTube ↗</a>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="prev" title="Previous">⏮</button>
+        <button class="btn play" id="play" title="Play / pause">▶</button>
+        <button class="btn" id="next" title="Next">⏭</button>
+        <button class="btn toggle" id="shuffle" title="Shuffle">🔀</button>
+        <button class="btn toggle" id="videoToggle" title="Show / hide video">📺</button>
+        <span class="spacer"></span>
+        <span class="vol">🔊 <input type="range" id="vol" min="0" max="100" value="80"></span>
+      </div>
+
+      <div class="queue">
+        <h3 id="queueHead">Up next</h3>
+        <div id="queue"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Playback is YouTube uploads of records in your collection — if a video is region-blocked or pulled,
+    the station auto-skips to the next track. Support the artists: buy the wax on
+    <code>discogs.com</code> / <code>bandcamp</code>.<br>
+    Built from <code>discogs.com/user/mindr4cer/collection</code>
+  </footer>
+</div>
+
+<div class="tuner" id="tuner">
+  <div class="card">
+    <h2>MINDR4CER RADIO</h2>
+    <p>A private radio built from your crate — Baltic cosmic synth, the Sprinkles/Detroit deep-house church, dub-techno chambers, kankyō ambient, spiritual jazz and deep dubstep.</p>
+    <button id="tuneIn">TUNE IN</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- programming ---------------- */
+const STATIONS = [
+  {
+    name:"Kosmos",
+    desc:"Baltic cosmic synth · Estonian library & folk-electronics",
+    tracks:[
+      {t:"Heli Maagia (full album)", a:"Misha Panfilov", tag:"Estonia · 2019 · EEE ZEE", id:"JdAM3Z2Z3os"},
+      {t:"Hingus (full album)", a:"Sven Grünberg", tag:"Estonia · 1981 · Bureau B", id:"PJYJApNUHaU"},
+      {t:"Vision of Estonia", a:"Uku Kuut", tag:"US/Estonia · 2012 · PPU", id:"h12PA4ovTZc"},
+      {t:"Fantasias for Violin & Guitar (full album)", a:"Maarja Nuut & Sun Araw", tag:"Estonia · 2020 · MIDA", id:"aQJOWw3MOhk"},
+      {t:"Garden of Pleasures", a:"Estrada Orchestra", tag:"Estonia · 2017 · Stereophonk", id:"X4Sg1IUqJQc"},
+      {t:"Leil", a:"Ruutu Poiss", tag:"Estonia · Wake Dream", id:"SAW1UQXEm9Q"},
+      {t:"Gone to the Cats", a:"Greg Foat, Aleksi Heinola & Teemu Åkerblom", tag:"Finland · 2021 · Jazzaggression", id:"1XVKbkz0CoY"},
+    ]
+  },
+  {
+    name:"Deep House Church",
+    desc:"DJ Sprinkles ↔ Detroit · Sound Signature, KDJ, Comatonse",
+    tracks:[
+      {t:"Midtown 120 Blues (full album)", a:"DJ Sprinkles", tag:"Japan · 2008 · Mule Musiq", id:"ovDHxs4K6D4"},
+      {t:"Summertime Is Here", a:"Theo Parrish", tag:"US · 1999 · Sound Signature", id:"76E-thr2I14"},
+      {t:"Falling Up (Carl Craig Remix)", a:"Theo Parrish", tag:"US · 2005 · Third Ear", id:"eOLLlym1O84"},
+      {t:"The Sun Can't Compare (Long Version)", a:"Larry Heard pres. Mr. White", tag:"US · 2006 · Alleviated", id:"a1qXc36b7wk"},
+      {t:"Shades of Jae", a:"Moodymann", tag:"US · 2001 · KDJ", id:"KhrO2hLp_zg"},
+      {t:"Long Trax", a:"Will Long", tag:"Japan · Comatonse", id:"4Yo9krNpF6E"},
+    ]
+  },
+  {
+    name:"Dub Techno Chamber",
+    desc:"Deepchord, Gas, Basic Channel lineage · Astral Industries, Ilian Tape",
+    tracks:[
+      {t:"Immersion I", a:"Deepchord", tag:"US/UK · 2018 · Astral Industries", id:"IU6aYNNVT_E"},
+      {t:"76:14 (full album)", a:"Global Communication", tag:"UK · 1994 · Dedicated", id:"w7-PD2oBvyY"},
+      {t:"Pop (full album)", a:"Gas", tag:"Germany · 2000 · Mille Plateaux", id:"s--IkNqI9og"},
+      {t:"Rhythm of Snow (full album)", a:"Yagya", tag:"Iceland · 2002 · Force Inc.", id:"ioj8rpDWkbE"},
+      {t:"Compro (full album)", a:"Skee Mask", tag:"Germany · 2018 · Ilian Tape", id:"uFa5Hin6vn8"},
+      {t:"14 31", a:"Global Communication", tag:"UK · 1994 · Dedicated", id:"3dXmjW3V8Qc"},
+    ]
+  },
+  {
+    name:"Kankyō",
+    desc:"Japanese environmental music & the Music From Memory reissue world",
+    tracks:[
+      {t:"Green (full album)", a:"Hiroshi Yoshimura", tag:"Japan · 1986 · LITA", id:"32XIDS71IuQ"},
+      {t:"Through the Looking Glass (full album)", a:"Midori Takada", tag:"Japan · 1983 · WRWTFWW", id:"Bululwnj4ik"},
+      {t:"Searching (full album)", a:"Ronald Langestraat", tag:"NL · 1984/2018 · South of North", id:"VTJhuIpd74Y"},
+      {t:"CZ-5000 Sounds & Sequences (full album)", a:"Satoshi & Makoto", tag:"Japan · 2020 · Safe Trip", id:"2omNn0g6NpA"},
+    ]
+  },
+  {
+    name:"Spiritual Jazz & Library",
+    desc:"Modal & spiritual jazz, Brazilian instrumental, Far Out orbit",
+    tracks:[
+      {t:"Journey in Satchidananda (full album)", a:"Alice Coltrane", tag:"US · 1971 · Impulse!", id:"NxPMKgY_8qk"},
+      {t:"Astral Traveling", a:"Pharoah Sanders", tag:"US · 1971 · Impulse!", id:"T4nAGtdkU88"},
+      {t:"Behind the Moon", a:"Marcos Resende & Index", tag:"Brazil · rec.1976 · Far Out", id:"qNcaCvUNsQI"},
+      {t:"Linha do Horizonte", a:"Azymuth", tag:"Brazil · 1975", id:"GvVRLzCXKPQ"},
+    ]
+  },
+  {
+    name:"Deep Dubstep",
+    desc:"Deep Medi / Hyperdub / Skull Disco · sound-system weight",
+    tracks:[
+      {t:"Changes", a:"Mala", tag:"UK · 2008 · Deep Medi", id:"ax0bMIbdBN0"},
+      {t:"Archangel", a:"Burial", tag:"UK · 2007 · Hyperdub", id:"qgdL8S4hyUo"},
+      {t:"9 Samurai", a:"Kode9 & The Spaceape", tag:"UK · 2006 · Hyperdub", id:"IOHtkeGycfs"},
+      {t:"Blood on My Hands", a:"Shackleton", tag:"UK · 2007 · Skull Disco", id:"9iEYQH6iqEs"},
+      {t:"Soundboy Ext.", a:"Skee Mask", tag:"Germany · Ilian Tape", id:"xx3nkr8u15k"},
+    ]
+  },
+];
+
+/* ---------------- state ---------------- */
+let player=null, apiReady=false, pendingStart=false;
+let stationIdx=0, order=[], pos=0, shuffle=false, isPlaying=false, errStreak=0;
+
+try{
+  const s=JSON.parse(localStorage.getItem("mr_state")||"{}");
+  if(Number.isInteger(s.stationIdx)) stationIdx=Math.min(Math.max(s.stationIdx,0),STATIONS.length-1);
+  if(typeof s.shuffle==="boolean") shuffle=s.shuffle;
+}catch(e){}
+
+function saveState(){
+  try{localStorage.setItem("mr_state",JSON.stringify({stationIdx,shuffle}));}catch(e){}
+}
+
+/* ---------------- rendering ---------------- */
+const dial=document.getElementById("dial");
+STATIONS.forEach((st,i)=>{
+  const b=document.createElement("button");
+  b.className="st"+(i===stationIdx?" active":"");
+  b.innerHTML=`<span class="num">CH ${String(i+1).padStart(2,"0")}</span>
+    <span class="nm">${st.name}</span>
+    <span class="ds">${st.desc}</span>`;
+  b.onclick=()=>selectStation(i);
+  dial.appendChild(b);
+});
+
+function refreshDial(){
+  [...dial.querySelectorAll(".st")].forEach((el,i)=>el.classList.toggle("active",i===stationIdx));
+}
+
+function buildOrder(){
+  const n=STATIONS[stationIdx].tracks.length;
+  order=[...Array(n).keys()];
+  if(shuffle){
+    for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  }
+  pos=0;
+}
+
+function currentTrack(){return STATIONS[stationIdx].tracks[order[pos]];}
+
+function renderNowPlaying(){
+  const st=STATIONS[stationIdx], tr=currentTrack();
+  document.getElementById("npStation").textContent="CH "+String(stationIdx+1).padStart(2,"0")+" · "+st.name;
+  document.getElementById("npTitle").textContent=tr.t;
+  document.getElementById("npArtist").textContent=tr.a;
+  document.getElementById("npTag").textContent=tr.tag;
+  document.getElementById("npYt").href="https://www.youtube.com/results?search_query="+encodeURIComponent(tr.a+" "+tr.t);
+  document.getElementById("queueHead").textContent="Up next · "+st.name;
+  const q=document.getElementById("queue");
+  q.innerHTML="";
+  order.forEach((tIdx,i)=>{
+    const t=st.tracks[tIdx];
+    const row=document.createElement("div");
+    row.className="qrow"+(i===pos?" playing":"");
+    row.innerHTML=`<span class="qn">${String(i+1).padStart(2,"0")}</span>
+      <span><span class="qt">${t.t}</span> &nbsp;<span class="qa">${t.a}</span></span>`;
+    row.onclick=()=>{pos=i;loadCurrent(true);};
+    q.appendChild(row);
+  });
+}
+
+/* ---------------- playback ---------------- */
+function onYouTubeIframeAPIReady(){
+  apiReady=true;
+  player=new YT.Player("yt",{
+    host:"https://www.youtube.com",
+    playerVars:{autoplay:0,playsinline:1,rel:0,modestbranding:1,iv_load_policy:3},
+    events:{
+      onReady:()=>{ player.setVolume(+document.getElementById("vol").value); if(pendingStart){pendingStart=false;loadCurrent(true);} },
+      onStateChange:onState,
+      onError:onErr,
+    }
+  });
+}
+window.onYouTubeIframeAPIReady=onYouTubeIframeAPIReady;
+
+function onState(e){
+  if(e.data===YT.PlayerState.PLAYING){isPlaying=true;errStreak=0;setPlayIcon();}
+  else if(e.data===YT.PlayerState.PAUSED){isPlaying=false;setPlayIcon();}
+  else if(e.data===YT.PlayerState.ENDED){nextTrack(true);}
+}
+function onErr(){
+  errStreak++;
+  if(errStreak>=STATIONS[stationIdx].tracks.length){
+    document.getElementById("npTitle").textContent="Station unavailable — try another channel";
+    return;
+  }
+  document.getElementById("npArtist").textContent="(video unavailable — skipping…)";
+  setTimeout(()=>nextTrack(true),1200);
+}
+
+function loadCurrent(autoplay){
+  const tr=currentTrack();
+  renderNowPlaying();refreshDial();saveState();
+  if(!player||!apiReady){pendingStart=true;return;}
+  if(autoplay) player.loadVideoById(tr.id);
+  else player.cueVideoById(tr.id);
+}
+function nextTrack(auto){
+  pos++;
+  if(pos>=order.length){ if(shuffle) buildOrder(); else pos=0; }
+  loadCurrent(true);
+}
+function prevTrack(){
+  const t=player&&player.getCurrentTime?player.getCurrentTime():0;
+  if(t>3){player.seekTo(0);return;}
+  pos=(pos-1+order.length)%order.length;
+  loadCurrent(true);
+}
+function selectStation(i){
+  stationIdx=i;errStreak=0;buildOrder();loadCurrent(true);
+}
+function setPlayIcon(){document.getElementById("play").textContent=isPlaying?"⏸":"▶";}
+
+/* ---------------- controls ---------------- */
+document.getElementById("play").onclick=()=>{
+  if(!player)return;
+  const s=player.getPlayerState();
+  if(s===YT.PlayerState.PLAYING) player.pauseVideo();
+  else player.playVideo();
+};
+document.getElementById("next").onclick=()=>nextTrack(false);
+document.getElementById("prev").onclick=prevTrack;
+document.getElementById("shuffle").onclick=e=>{
+  shuffle=!shuffle;e.currentTarget.classList.toggle("on",shuffle);
+  const keep=currentTrack();
+  buildOrder();
+  const np=order.indexOf(STATIONS[stationIdx].tracks.indexOf(keep));
+  if(np>=0){order.splice(np,1);order.unshift(STATIONS[stationIdx].tracks.indexOf(keep));pos=0;}
+  renderNowPlaying();saveState();
+};
+document.getElementById("videoToggle").onclick=e=>{
+  const hidden=document.getElementById("stage").classList.toggle("hidden-video");
+  e.currentTarget.classList.toggle("on",!hidden);
+};
+document.getElementById("vol").oninput=e=>{ if(player&&player.setVolume) player.setVolume(+e.target.value); };
+
+if(shuffle) document.getElementById("shuffle").classList.add("on");
+document.getElementById("videoToggle").classList.add("on");
+
+/* ---------------- boot ---------------- */
+buildOrder();
+renderNowPlaying();
+
+document.getElementById("tuneIn").onclick=()=>{
+  document.getElementById("tuner").style.display="none";
+  const tag=document.createElement("script");
+  tag.src="https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+  pendingStart=true;
+  // safety: if API already loaded somehow
+  if(window.YT&&window.YT.Player&&!player) onYouTubeIframeAPIReady();
+};
+</script>
+</body>
+</html>
